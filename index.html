@@ -879,7 +879,7 @@ function onScanSuccess(decodedText){
 if(scanLock) return;
 
 // anti scan sama berturut
-if(decodedText === lastBarcode) return;
+if(decodedText === lastBarcode && scanLock) return;
 
 scanLock = true;
 lastBarcode = decodedText;
