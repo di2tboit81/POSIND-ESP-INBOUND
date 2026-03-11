@@ -927,6 +927,11 @@ onScanSuccess
 scannerRunning = true;
 showNotif("📷 Camera aktif","success");
 
+// 🔥 TAMBAHAN INI
+setTimeout(()=>{
+autoFlash();
+},800);
+
 }catch(err){
 console.log(err);
 showNotif("Camera gagal aktif","error");
@@ -1051,11 +1056,9 @@ async function autoFlash(){
 try{
 
 const video = document.querySelector("#reader video");
-
 if(!video) return;
 
 const stream = video.srcObject;
-
 if(!stream) return;
 
 const track = stream.getVideoTracks()[0];
