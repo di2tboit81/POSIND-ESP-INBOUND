@@ -1046,6 +1046,39 @@ console.log("Flash tidak didukung");
 
 // ===== AUTO FLASH (TORCH) SAAT SCAN DI HP =====
 let currentCameraTrack = null;
+async function autoFlash(){
+
+try{
+
+const video = document.querySelector("#reader video");
+
+if(!video) return;
+
+const stream = video.srcObject;
+
+if(!stream) return;
+
+const track = stream.getVideoTracks()[0];
+
+currentCameraTrack = track;
+
+const capabilities = track.getCapabilities();
+
+if(capabilities.torch){
+
+await track.applyConstraints({
+advanced:[{torch:true}]
+});
+
+console.log("Flash ON 🔦");
+
+}
+
+}catch(err){
+console.log("Flash tidak didukung");
+}
+
+}
 
 // Ambil kamera setelah scanner aktif
 setTimeout(async () => {
