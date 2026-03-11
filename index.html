@@ -817,9 +817,16 @@ setTimeout(()=>{n.innerText="";},3000);
 function prosesBarcode(barcode){
 
 // ===== VALIDASI FORMAT BARCODE FUTURE PROOF =====
+
+// Format ESP lama
 const regexESP = /^(DWB20\d{2}[A-Za-z0-9]{4,6}|TO20\d{2}[A-Za-z0-9]{9})$/i;
 
-if(!regexESP.test(barcode)){
+// Format LOST baru (13-14 karakter)
+// contoh: LOST2026XXXXXX atau LOST2027XXXXX
+const regexLOST = /^LOST20(25|26|27|28|29|30)[A-Za-z0-9]{1,3}$/i;
+
+// Gabungkan validasi
+if(!regexESP.test(barcode) && !regexLOST.test(barcode)){
 
     efekErrorKuat();
 
@@ -1682,4 +1689,5 @@ console.log("Optimasi memory aktif");
 </div>
 </body>
 </html>
+
 
