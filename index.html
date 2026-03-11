@@ -691,6 +691,12 @@ Total Scan Berhasil : 0
 
 <div id="reader"></div>
 
+<div style="display:flex;gap:8px;margin-top:10px;">
+<button class="btn-success" onclick="startScanner()">START CAMERA</button>
+<button class="btn-danger" onclick="stopScanner()">STOP CAMERA</button>
+<button class="btn-primary" onclick="restartScanner()">RESTART CAMERA</button>
+</div>
+
 <button id="btnFlash" class="btn-primary" onclick="toggleFlash()">
 🔦 Flash ON
 </button>
@@ -894,15 +900,20 @@ scanLock = false;
 
 let scanLock = false;
 let lastBarcode = "";
+let scannerRunning = false;
 
 const html5QrCode = new Html5Qrcode("reader");
 
-function startScanner(){
+async function startScanner(){
 
-html5QrCode.start(
-{ facingMode: "environment" }, // kamera belakang
+if(scannerRunning) return;
+
+try{
+
+await html5QrCode.start(
+{ facingMode: "environment" },
 {
-fps:6, // lebih ringan
+fps:7,
 qrbox:{ width:220, height:220 },
 aspectRatio:1.0,
 disableFlip:false
@@ -910,8 +921,54 @@ disableFlip:false
 onScanSuccess
 );
 
+scannerRunning = true;
+showNotif("📷 Camera aktif","success");
+
+}catch(err){
+console.log(err);
+showNotif("Camera gagal aktif","error");
 }
 
+}
+
+async function stopScanner(){
+
+if(!scannerRunning) return;
+
+try{
+
+await html5QrCode.stop();
+scannerRunning = false;
+
+showNotif("📷 Camera dihentikan","error");
+
+}catch(err){
+console.log(err);
+}
+
+}
+
+async function restartScanner(){
+
+try{
+
+if(scannerRunning){
+await html5QrCode.stop();
+}
+
+setTimeout(()=>{
+startScanner();
+},500);
+
+showNotif("🔄 Camera restart","success");
+
+}catch(err){
+console.log(err);
+}
+
+}
+
+// AUTO START
 startScanner();
 
 // ===== AUTO FLASH HP =====
