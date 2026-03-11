@@ -906,7 +906,10 @@ const html5QrCode = new Html5Qrcode("reader");
 
 async function startScanner(){
 
-if(scannerRunning) return;
+if(scannerRunning){
+await html5QrCode.stop().catch(()=>{});
+scannerRunning = false;
+}
 
 try{
 
@@ -952,18 +955,25 @@ async function restartScanner(){
 
 try{
 
-if(scannerRunning){
-await html5QrCode.stop();
-}
+// paksa stop dulu
+await html5QrCode.stop().catch(()=>{});
 
-setTimeout(()=>{
-startScanner();
-},500);
+scannerRunning = false;
 
-showNotif("🔄 Camera restart","success");
+// tunggu kamera benar-benar dilepas
+setTimeout(async ()=>{
+
+await startScanner();
+
+},1200);
+
+showNotif("🔄 Camera Restart","success");
 
 }catch(err){
+
 console.log(err);
+showNotif("Restart gagal","error");
+
 }
 
 }
