@@ -868,24 +868,61 @@ beep("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
 showNotif("✅ Berhasil ditambahkan","success");
 }
 
+let scanLock = false;
+
 function onScanSuccess(decodedText){
 
-    // tampilkan hasil scan terakhir
+    if(scanLock) return; // cegah double scan
+
+    scanLock = true;
+
     document.getElementById("lastScan").innerText =
         "Scan Berhasil: " + decodedText;
 
     prosesBarcode(decodedText);
 
-    // pause sebentar agar tidak double scan
-    matikanFlash();
-    scanner.clear();
     setTimeout(()=>{
-        scanner.render(onScanSuccess);
-    },3000);
+        scanLock = false;
+    },1200); // jeda 1.2 detik
 }
 
-let scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:250});
+let scanner = new Html5QrcodeScanner("reader",{
+fps:5,
+qrbox:220
+});
 scanner.render(onScanSuccess);
+// AUTO AKTIFKAN FLASH HP
+setTimeout(async () => {
+
+try{
+
+const video = document.querySelector("#reader video");
+
+if(!video) return;
+
+const stream = video.srcObject;
+
+if(!stream) return;
+
+const track = stream.getVideoTracks()[0];
+
+const capabilities = track.getCapabilities();
+
+if(capabilities.torch){
+
+await track.applyConstraints({
+advanced:[{torch:true}]
+});
+
+console.log("Flash Aktif 🔦");
+
+}
+
+}catch(e){
+console.log("Flash tidak didukung");
+}
+
+},2000);
 
 // ===== AUTO FLASH (TORCH) SAAT SCAN DI HP =====
 let currentCameraTrack = null;
@@ -1477,9 +1514,3 @@ setInterval(detectDevTools,1000);
 </div>
 </body>
 </html>
-
-
-
-
-
-
