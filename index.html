@@ -1873,6 +1873,8 @@ function resetHistory(){
     showNotif("🔄 Reset pencarian","success");
 }
 
+let selectedHistoryKey = null;
+
 function hapusHistory(){
 
     let key = document.getElementById("historySelect").value;
@@ -1882,27 +1884,63 @@ function hapusHistory(){
         return;
     }
 
-    if(!confirm("Yakin mau hapus history ini?")){
+    selectedHistoryKey = key;
+
+    // tampilkan popup password
+    document.getElementById("passwordAlert").style.display = "flex";
+
+    // reset input
+    document.getElementById("inputPassword").value = "";
+}
+
+function tutupPassword(){
+    document.getElementById("passwordAlert").style.display = "none";
+}
+
+function cekPassword(){
+
+    const password = document.getElementById("inputPassword").value;
+
+    // 🔐 GANTI PASSWORD DI SINI
+    const PASSWORD_BENAR = "Di2tboit";
+
+    if(password !== PASSWORD_BENAR){
+
+        efekErrorKuat();
+
+        beep("https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg");
+
+        showNotif("❌ PASSWORD SALAH","error");
+
         return;
     }
+	
+    // kalau benar → hapus data
+    let key = selectedHistoryKey;
 
-    // hapus dari localStorage
     localStorage.removeItem(key);
 
-    // hapus dari list
     let list = JSON.parse(localStorage.getItem("history_stk")) || [];
     list = list.filter(k => k !== key);
     localStorage.setItem("history_stk", JSON.stringify(list));
 
-    // hapus dari Firebase
     database.ref("history_stk/" + key).remove();
 
-    // refresh tampilan
     loadHistoryList();
     document.getElementById("previewBox").innerHTML = "";
 
+    tutupPassword();
+
     showNotif("🗑️ History berhasil dihapus","success");
 }
+
+
+document.getElementById("inputPassword")
+.addEventListener("keypress", function(e){
+    if(e.key === "Enter"){
+        cekPassword();
+    }
+});
 
 
 /* ===== ANTI INSPECT ===== */
@@ -1983,6 +2021,8 @@ console.log("Optimasi memory aktif");
 
 },60000);
 
+
+
 </script>
 <!-- CYBER ALERT HAPUS SEMUA -->
 <div id="cyberAlertAll" class="cyber-alert">
@@ -1998,6 +2038,39 @@ console.log("Optimasi memory aktif");
     </div>
   </div>
 </div>
+
+<!-- 🔐 CYBER PASSWORD ALERT -->
+<div id="passwordAlert" class="cyber-alert">
+  <div class="cyber-box">
+
+    <div class="cyber-title">🔐 AKSES TERBATAS</div>
+
+    <div class="cyber-text">
+      MASUKKAN PASSWORD UNTUK HAPUS HISTORY
+    </div>
+
+    <input type="password" id="inputPassword" placeholder="••••••••"
+    style="
+        width:100%;
+        padding:12px;
+        border-radius:10px;
+        border:2px solid #FF6A00;
+        background:black;
+        color:#00F5FF;
+        text-align:center;
+        font-weight:800;
+        letter-spacing:2px;
+        box-shadow:0 0 10px #FF6A00 inset;
+    ">
+
+    <div class="cyber-buttons">
+      <button class="btn-ya" onclick="cekPassword()">MASUK</button>
+      <button class="btn-batal" onclick="tutupPassword()">BATAL</button>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
 
