@@ -1419,20 +1419,22 @@ function exportExcel(){
     setCell(row,5,"KANTONG");
     row++;
 
-    const perColumn = 70;
-    const leftData  = scannedBarcodes.slice(0,perColumn);
-    const rightData = scannedBarcodes.slice(perColumn);
+   const perColumn = 70;
+const totalRows = Math.ceil(scannedBarcodes.length / 2);
 
-    for(let i=0;i<perColumn;i++){
+for(let i=0;i<totalRows;i++){
 
-        setCell(row,1,leftData[i] ? String(i+1) : "");
-        setCell(row,2,leftData[i] || "");
+    let leftIndex  = i;
+    let rightIndex = i + totalRows;
 
-        setCell(row,4,rightData[i] ? String(perColumn+i+1) : "");
-        setCell(row,5,rightData[i] || "");
+    setCell(row,1, scannedBarcodes[leftIndex] ? String(leftIndex+1) : "");
+    setCell(row,2, scannedBarcodes[leftIndex] || "");
 
-        row++;
-    }
+    setCell(row,4, scannedBarcodes[rightIndex] ? String(rightIndex+1) : "");
+    setCell(row,5, scannedBarcodes[rightIndex] || "");
+
+    row++;
+}
 
     row+=2;
 
