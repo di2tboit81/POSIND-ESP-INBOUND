@@ -636,6 +636,49 @@ html.error-flash{
 animation: errorFlash 0.6s alternate 3;
 }
 
+/* ===== DROPDOWN HISTORY CYBER ===== */
+.history-dropdown{
+    width:100%;
+    padding:14px;
+    border-radius:12px;
+    border:2px solid #FF6A00;
+    background:rgba(0,0,0,0.6);
+    color:#00F5FF;
+    font-weight:800;
+    text-align:center;
+    font-size:14px;
+
+    box-shadow:
+        0 0 10px rgba(255,106,0,0.5),
+        inset 0 0 10px rgba(0,255,255,0.3);
+
+    outline:none;
+}
+
+/* OPTION BIAR TERANG */
+.history-dropdown option{
+    background:#0F172A;
+    color:#FFD700;
+    font-weight:700;
+}
+
+/* PREVIEW BOX */
+.preview-box{
+    margin-top:12px;
+    padding:10px;
+    border-radius:10px;
+
+    background:rgba(0,0,0,0.5);
+    color:#00FF88;
+
+    font-weight:700;
+    line-height:1.6;
+
+    box-shadow:
+        0 0 10px rgba(0,255,136,0.4),
+        inset 0 0 10px rgba(0,255,136,0.2);
+}
+
 </style>
 </head>
 <body>
@@ -730,6 +773,22 @@ Total: <span id="total">0</span>
 <button class="btn-success" onclick="printPDF()">Print / Save PDF</button>
 <button class="btn-excel" onclick="exportExcel()">Export Excel</button>
 </div>
+
+<!-- ===== HISTORY DATA ===== -->
+<div class="card" style="text-align:center;">
+<label style="display:block; margin-bottom:10px; font-size:16px;">
+📂 PILIH HISTORY DATA (7 HARI)
+</label>
+
+<select id="historySelect" onchange="previewHistory()" class="history-dropdown"></select>
+
+<div id="previewBox" class="preview-box"></div>
+
+<button class="btn-primary" onclick="loadDataHistory()">📥 Load Data</button>
+<button class="btn-danger" onclick="hapusHistory()">🗑️ Hapus History</button>
+</div>
+
+
 
 <div class="card">
 <h4>Tanda Tangan Penerima</h4>
@@ -1453,7 +1512,11 @@ for(let i=0;i<totalRows;i++){
 
     XLSX.utils.book_append_sheet(wb, ws, "Serah Terima");
     XLSX.writeFile(wb, "STK_ESP KE POSIND_" + getTanggalJamFile() + ".xlsx");
+	simpanHistoryExport();
+	loadHistoryList(); // refresh dropdown setelah simpan
 }
+
+
 
 /* ================================
    AUTO SAVE & LOAD (ANTI HILANG)
@@ -1474,6 +1537,9 @@ function simpanLocal(){
 
 // ===== LOAD SAAT HALAMAN DIBUKA =====
 window.addEventListener("load", function(){
+
+ loadHistoryFirebase(); // ambil dari firebase
+ loadHistoryList();     // 🔥 tampilkan ke dropdown langsung
 
     database.ref("data_stk/global").on("value", function(snapshot){
 
@@ -1595,6 +1661,249 @@ simpanLocal();
 
 tutupAlert();
 }
+
+
+// ================================
+// 🔥 HISTORY EXPORT SYSTEM PRO
+// ================================
+
+// ===== SIMPAN HISTORY =====
+function simpanHistoryExport(){
+
+    let now = new Date();
+    let key = "STK_" + getTanggalJamFile();
+
+    let data = {
+        tanggal: document.getElementById("tanggal").value,
+        penerima: document.getElementById("penerima").value,
+        penyerah: document.getElementById("penyerah").value,
+        barcodes: scannedBarcodes,
+        created: now.getTime(),
+        expired: now.getTime() + (7 * 24 * 60 * 60 * 1000)
+    };
+
+    // LOCAL
+    localStorage.setItem(key, JSON.stringify(data));
+
+    let list = JSON.parse(localStorage.getItem("history_stk")) || [];
+    list.push(key);
+    localStorage.setItem("history_stk", JSON.stringify(list));
+
+    // FIREBASE
+    backupFirebase(key, data);
+}
+
+
+// ===== BACKUP FIREBASE =====
+function backupFirebase(key, data){
+    database.ref("history_stk/" + key).set(data);
+}
+
+
+// ===== LOAD HISTORY LIST =====
+function loadHistoryList(){
+
+    let list = JSON.parse(localStorage.getItem("history_stk")) || [];
+    let select = document.getElementById("historySelect");
+
+    if(!select) return;
+
+    select.innerHTML = `<option value="">-- PILIH DATA HISTORY --</option>`;
+
+    let newList = [];
+
+    list.forEach(key => {
+
+        let data = JSON.parse(localStorage.getItem(key));
+        if(!data) return;
+
+        // hapus jika expired
+        if(Date.now() > data.expired){
+            localStorage.removeItem(key);
+            return;
+        }
+
+        newList.push(key);
+
+        let option = document.createElement("option");
+        option.value = key;
+
+        // format tampil lebih rapi
+        option.textContent = key.replace("STK_","").replace("_"," | ");
+
+        select.appendChild(option);
+    });
+
+    localStorage.setItem("history_stk", JSON.stringify(newList));
+}
+
+
+// ===== LOAD DARI FIREBASE =====
+function loadHistoryFirebase(){
+
+    database.ref("history_stk").once("value", function(snapshot){
+
+        let data = snapshot.val();
+        if(!data) return;
+
+        Object.keys(data).forEach(key => {
+
+            let item = data[key];
+
+            if(Date.now() > item.expired) return;
+
+            localStorage.setItem(key, JSON.stringify(item));
+
+            let list = JSON.parse(localStorage.getItem("history_stk")) || [];
+
+            if(!list.includes(key)){
+                list.push(key);
+                localStorage.setItem("history_stk", JSON.stringify(list));
+            }
+
+        });
+
+        loadHistoryList();
+    });
+}
+
+
+// ===== LOAD DATA TERPILIH =====
+function loadDataHistory(){
+
+    let key = document.getElementById("historySelect").value;
+    if(!key) return;
+
+    let data = JSON.parse(localStorage.getItem(key));
+    if(!data) return;
+
+    scannedBarcodes = data.barcodes || [];
+
+    document.getElementById("tanggal").value = data.tanggal;
+    document.getElementById("penerima").value = data.penerima;
+    document.getElementById("penyerah").value = data.penyerah;
+
+    let table = document.getElementById("tabelData");
+    table.innerHTML = `
+    <tr>
+    <th>No</th>
+    <th>Kantong</th>
+    <th>Hapus</th>
+    </tr>`;
+
+    scannedBarcodes.forEach((barcode,index)=>{
+        let row = table.insertRow();
+        row.insertCell(0).innerHTML = index + 1;
+        row.insertCell(1).innerHTML = barcode;
+        row.insertCell(2).innerHTML =
+        `<button class="btn-danger" onclick="hapusBaris(this,'${barcode}')">X</button>`;
+    });
+
+    document.getElementById("total").innerText = scannedBarcodes.length;
+    updateScanCounter();
+
+    showNotif("📂 Data berhasil dipanggil","success");
+}
+
+
+// ===== PREVIEW =====
+function previewHistory(){
+
+    let key = document.getElementById("historySelect").value;
+    if(!key) return;
+
+    let data = JSON.parse(localStorage.getItem(key));
+    if(!data) return;
+
+    let preview = `
+    📅 ${data.tanggal}<br>
+    👤 ${data.penerima}<br>
+    📦 ${data.barcodes.length} kantong
+    `;
+
+    document.getElementById("previewBox").innerHTML = preview;
+}
+
+
+// ===== CARI (PAKAI TOMBOL) =====
+function cariHistory(){
+
+    let input = document.getElementById("searchHistory").value.toLowerCase();
+    let list = JSON.parse(localStorage.getItem("history_stk")) || [];
+    let select = document.getElementById("historySelect");
+
+    select.innerHTML = `<option value="">-- PILIH DATA HISTORY --</option>`;
+
+    let ketemu = false;
+
+    list.forEach(key => {
+
+        let data = JSON.parse(localStorage.getItem(key));
+        if(!data) return;
+
+        let textGabung = (data.tanggal + " " + data.penerima + " " + data.penyerah).toLowerCase();
+
+        if(textGabung.includes(input)){
+
+            let option = document.createElement("option");
+            option.value = key;
+            option.textContent = key.replace("STK_","").replace("_"," | ");
+
+            select.appendChild(option);
+            ketemu = true;
+        }
+
+    });
+
+    if(!ketemu){
+        showNotif("❌ Data tidak ditemukan","error");
+    }else{
+        showNotif("🔍 Data ditemukan","success");
+    }
+}
+
+
+// ===== RESET =====
+function resetHistory(){
+
+    document.getElementById("searchHistory").value = "";
+
+    loadHistoryList(); // reload ulang semua data
+
+    showNotif("🔄 Reset pencarian","success");
+}
+
+function hapusHistory(){
+
+    let key = document.getElementById("historySelect").value;
+
+    if(!key){
+        showNotif("❌ Pilih data dulu","error");
+        return;
+    }
+
+    if(!confirm("Yakin mau hapus history ini?")){
+        return;
+    }
+
+    // hapus dari localStorage
+    localStorage.removeItem(key);
+
+    // hapus dari list
+    let list = JSON.parse(localStorage.getItem("history_stk")) || [];
+    list = list.filter(k => k !== key);
+    localStorage.setItem("history_stk", JSON.stringify(list));
+
+    // hapus dari Firebase
+    database.ref("history_stk/" + key).remove();
+
+    // refresh tampilan
+    loadHistoryList();
+    document.getElementById("previewBox").innerHTML = "";
+
+    showNotif("🗑️ History berhasil dihapus","success");
+}
+
 
 /* ===== ANTI INSPECT ===== */
 
