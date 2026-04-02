@@ -679,6 +679,29 @@ animation: errorFlash 0.6s alternate 3;
         inset 0 0 10px rgba(0,255,136,0.2);
 }
 
+/* 💖 BUTTON LOAD DATA PINK CANTIK */
+.btn-load{
+    background: linear-gradient(135deg,#ff4da6,#ff80bf);
+    color:white;
+    font-weight:800;
+    border-radius:12px;
+
+    box-shadow:
+        0 0 10px rgba(255,77,166,0.6),
+        0 0 25px rgba(255,128,191,0.5);
+}
+
+.btn-load:hover{
+    transform: translateY(-2px);
+    box-shadow:
+        0 0 20px #ff4da6,
+        0 0 40px #ff80bf;
+}
+
+.btn-load:active{
+    transform: scale(0.97);
+}
+
 </style>
 </head>
 <body>
@@ -784,7 +807,7 @@ Total: <span id="total">0</span>
 
 <div id="previewBox" class="preview-box"></div>
 
-<button class="btn-primary" onclick="loadDataHistory()">📥 Load Data</button>
+<button class="btn-load" onclick="loadDataHistory()">📥 Load Data</button>
 <button class="btn-danger" onclick="hapusHistory()">🗑️ Hapus History</button>
 </div>
 
