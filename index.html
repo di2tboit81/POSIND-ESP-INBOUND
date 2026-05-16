@@ -307,6 +307,100 @@ BATAL
 
 </div>
 
+<script>
+/* ===== ANTI INSPECT ===== */
+
+document.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+});
+
+document.onkeydown = function(e){
+
+    // F12
+    if(e.keyCode == 123){
+        return false;
+    }
+
+    // CTRL + SHIFT + I
+    if(e.ctrlKey && e.shiftKey && e.keyCode == 73){
+        return false;
+    }
+
+    // CTRL + SHIFT + J
+    if(e.ctrlKey && e.shiftKey && e.keyCode == 74){
+        return false;
+    }
+
+    // CTRL + U
+    if(e.ctrlKey && e.keyCode == 85){
+        return false;
+    }
+
+    // CTRL + SHIFT + C
+    if(e.ctrlKey && e.shiftKey && e.keyCode == 67){
+        return false;
+    }
+
+};
+
+
+document.onselectstart = function(e){
+
+    if(e.target.closest("#listKantong")){
+        return true;
+    }
+
+    return false;
+};
+
+
+(function(){
+
+function detectDevTools(){
+
+    const start = new Date();
+
+    debugger;
+
+    const end = new Date();
+
+    if(end - start > 100){
+
+        document.body.innerHTML =
+        "<h1 style='color:red;text-align:center;margin-top:100px;'>SECURITY BLOCKED</h1>";
+
+    }
+
+}
+
+setInterval(detectDevTools,1000);
+
+})();
+
+// ===== KLIK NOMOR KANTONG AUTO COPY =====
+document.addEventListener("click", function(e){
+
+    if(e.target.tagName === "TD" && e.target.parentElement.parentElement.id === "listKantong"){
+
+        var teks = e.target.innerText;
+
+        navigator.clipboard.writeText(teks).then(function(){
+
+            // efek notifikasi kecil
+            e.target.style.background = "#00c896";
+
+            setTimeout(function(){
+                e.target.style.background = "";
+            },500);
+
+        });
+
+    }
+
+});
+
+</script>
+
 </body>
 
 
