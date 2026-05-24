@@ -1071,6 +1071,26 @@ color:#00ff99;
 text-shadow:0 0 10px #00ff99;
 }
 
+/* TOMBOL LOGOUT */
+#btnLogout{
+    width:100%;
+    margin-top:12px;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(90deg,#ff3b30,#ff6a00);
+    color:white;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition:0.3s;
+    box-shadow:0 0 12px rgba(255,80,0,0.5);
+}
+
+#btnLogout:hover{
+    transform:scale(1.03);
+    box-shadow:0 0 20px rgba(255,80,0,0.8);
+}
 
 
 </style>
