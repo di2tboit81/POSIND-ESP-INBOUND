@@ -18,9 +18,57 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+/* INPUT LOGIN RATA TENGAH */
+#username,
+#password{
+    text-align:center;
+}
+
+/* PLACEHOLDER JUGA RATA TENGAH */
+#username::placeholder,
+#password::placeholder{
+    text-align:center;
+}
+
+</style>
+
 </head>
 
 <body>
+
+<!-- =========================
+     LOGIN CYBER OVERLAY
+========================= -->
+<div id="loginOverlay">
+
+    <div class="login-box">
+
+        <div class="login-logo">
+            <img src="POS.jpg" alt="logo">
+        </div>
+
+        <h1>LOGIN SYSTEM</h1>
+        <p>Silakan masuk untuk menjalankan aplikasi</p>
+
+        <input type="text" id="username" placeholder="Masukkan Username">
+
+        <div class="password-group">
+            <input type="password" id="password" placeholder="Masukkan Password">
+            <button type="button" id="togglePassword">👁</button>
+        </div>
+
+        <button id="btnLogin" onclick="loginApp()">
+            LOGIN
+        </button>
+
+        <div id="loginNotif"></div>
+
+    </div>
+
+</div>
 
 <!-- CYBER ALERT -->
 <div id="cyberAlert" class="cyber-alert">
@@ -398,6 +446,103 @@ document.addEventListener("click", function(e){
     }
 
 });
+
+/* =====================================
+   LOGIN SYSTEM CYBER FIX
+===================================== */
+localStorage.removeItem("cyberLogin");
+const APP_USER = "Win29400";
+const APP_PASS = "29400";
+
+function loginApp(){
+
+    const userInput = document.getElementById("username");
+    const passInput = document.getElementById("password");
+
+    if(!userInput || !passInput){
+        alert("Element login tidak ditemukan");
+        return;
+    }
+
+    const user = userInput.value.trim();
+    const pass = passInput.value.trim();
+
+    const notif = document.getElementById("loginNotif");
+
+    if(user === APP_USER && pass === APP_PASS){
+
+        notif.innerHTML = "✅ LOGIN BERHASIL";
+        notif.style.color = "#00ff99";
+
+        localStorage.setItem("cyberLogin","true");
+
+        setTimeout(()=>{
+
+            const overlay =
+            document.getElementById("loginOverlay");
+
+            overlay.style.opacity = "0";
+
+            setTimeout(()=>{
+                overlay.style.display = "none";
+            },500);
+
+        },800);
+
+    }else{
+
+        notif.innerHTML =
+        "❌ Username atau Password Salah";
+
+        notif.style.color = "red";
+    }
+}
+
+/* ENTER KEY LOGIN */
+document.addEventListener("keydown",function(e){
+
+    const overlay =
+    document.getElementById("loginOverlay");
+
+    if(
+        e.key === "Enter" &&
+        overlay.style.display !== "none"
+    ){
+        loginApp();
+    }
+
+});
+
+/* TOGGLE PASSWORD */
+document.addEventListener("DOMContentLoaded",()=>{
+
+    const toggle =
+    document.getElementById("togglePassword");
+
+    if(toggle){
+
+        toggle.onclick = function(){
+
+            const pass =
+            document.getElementById("password");
+
+            if(pass.type === "password"){
+
+                pass.type = "text";
+                toggle.innerHTML = "🙈";
+
+            }else{
+
+                pass.type = "password";
+                toggle.innerHTML = "👁";
+            }
+        };
+    }
+
+    
+
+});
+
 
 </script>
 
