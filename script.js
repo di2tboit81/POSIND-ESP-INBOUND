@@ -12,9 +12,6 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var database = firebase.database();
 
-
-
-
 function getTanggalJamFile(){
     let now = new Date();
 
@@ -792,8 +789,6 @@ for(let i=0;i<totalRows;i++){
 	loadHistoryList(); // refresh dropdown setelah simpan
 }
 
-
-
 /* ================================
    AUTO SAVE & LOAD (ANTI HILANG)
 ================================= */
@@ -904,7 +899,6 @@ document.getElementById("penerima").addEventListener("input", simpanLocal);
 document.getElementById("penyerah").addEventListener("input", simpanLocal);
 document.getElementById("tanggal").addEventListener("change", simpanLocal);
 
-
 function efekErrorKuat(){
 
     if(navigator.vibrate){
@@ -920,7 +914,6 @@ function efekErrorKuat(){
     },1200);
 
 }
-
 
 let btnTarget;
 let barcodeTarget;
@@ -952,41 +945,74 @@ simpanLocal();
 tutupAlert();
 }
 
-
-// ================================
-// 🔥 HISTORY EXPORT SYSTEM PRO
-// ================================
-
 // ===== SIMPAN HISTORY =====
 function simpanHistoryExport(){
 
+    let tanggalSekarang =
+    document.getElementById("tanggal").value;
+
+    let list =
+    JSON.parse(localStorage.getItem("history_stk")) || [];
+
+    let keyLama = null;
+
+    // Cari history dengan tanggal yang sama
+    list.forEach(key=>{
+
+        let data =
+        JSON.parse(localStorage.getItem(key));
+
+        if(data && data.tanggal === tanggalSekarang){
+            keyLama = key;
+        }
+
+    });
+
     let now = new Date();
-    let key = "STK_" + getTanggalJamFile();
+
+    let key = keyLama || ("STK_" + getTanggalJamFile());
 
     let data = {
-        tanggal: document.getElementById("tanggal").value,
-        penerima: document.getElementById("penerima").value,
-        penyerah: document.getElementById("penyerah").value,
 
-        // 🔥 WAJIB TAMBAH INI
-        dataBerat: dataBerat,
+        tanggal : tanggalSekarang,
+        penerima : document.getElementById("penerima").value,
+        penyerah : document.getElementById("penyerah").value,
+        dataBerat : dataBerat,
+        barcodes : scannedBarcodes,
 
-        barcodes: scannedBarcodes,
-        created: now.getTime(),
-        expired: now.getTime() + (7 * 24 * 60 * 60 * 1000)
+        created : keyLama
+            ? JSON.parse(localStorage.getItem(keyLama)).created
+            : now.getTime(),
+
+        expired : now.getTime() + (7 * 24 * 60 * 60 * 1000)
+
     };
 
-    // LOCAL
-    localStorage.setItem(key, JSON.stringify(data));
+    localStorage.setItem(
+        key,
+        JSON.stringify(data)
+    );
 
-    let list = JSON.parse(localStorage.getItem("history_stk")) || [];
-    list.push(key);
-    localStorage.setItem("history_stk", JSON.stringify(list));
+    if(!keyLama){
 
-    // FIREBASE
-    backupFirebase(key, data);
+        list.push(key);
+
+        localStorage.setItem(
+            "history_stk",
+            JSON.stringify(list)
+        );
+
+    }
+
+    backupFirebase(key,data);
+
+    console.log(
+        keyLama
+        ? "History diperbarui"
+        : "History baru dibuat"
+    );
+
 }
-
 
 // ===== BACKUP FIREBASE =====
 function backupFirebase(key, data){
@@ -1031,7 +1057,6 @@ function loadHistoryList(){
     localStorage.setItem("history_stk", JSON.stringify(newList));
 }
 
-
 // ===== LOAD DARI FIREBASE =====
 function loadHistoryFirebase(){
 
@@ -1060,7 +1085,6 @@ function loadHistoryFirebase(){
         loadHistoryList();
     });
 }
-
 
 // ===== LOAD DATA TERPILIH =====
 function loadDataHistory(){
@@ -1109,7 +1133,6 @@ row.insertCell(3).innerHTML =
     showNotif("📂 Data berhasil dipanggil","success");
 }
 
-
 // ===== PREVIEW =====
 function previewHistory(){
 
@@ -1127,7 +1150,6 @@ function previewHistory(){
 
     document.getElementById("previewBox").innerHTML = preview;
 }
-
 
 // ===== CARI (PAKAI TOMBOL) =====
 function cariHistory(){
@@ -1165,7 +1187,6 @@ function cariHistory(){
         showNotif("🔍 Data ditemukan","success");
     }
 }
-
 
 // ===== RESET =====
 function resetHistory(){
@@ -1238,14 +1259,12 @@ function cekPassword(){
     showNotif("🗑️ History berhasil dihapus","success");
 }
 
-
 document.getElementById("inputPassword")
 .addEventListener("keypress", function(e){
     if(e.key === "Enter"){
         cekPassword();
     }
 });
-
 
 /* ===== ANTI INSPECT ===== */
 
